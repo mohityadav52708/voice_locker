@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Protected Webpage</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: linear-gradient(to right, #141e30, #243b55);
+        color: white;
+        padding: 50px;
+    }
+    
+    .container {
+        max-width: 500px;
+        margin: auto;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        margin: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 5px;
+    }
+    
+    button:hover {
+        background-color: #45a049;
+    }
+    
+    #status {
+        font-size: 18px;
+        margin-top: 20px;
+    }
+    
+</style>
+<body>
+    <div class="container">
+        <h1>Voice Authentication System</h1>
+        <button id="set-password">Set Voice Password</button>
+        <button id="login">Login with Voice</button>
+        <p id="status"></p>
+    </div>
+
+    <script >
+        // Initialize Speech Recognition API
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.continuous = false;
+recognition.lang = "en-US";
+
+const statusText = document.getElementById("status");
+const setPasswordBtn = document.getElementById("set-password");
+const loginBtn = document.getElementById("login");
+
+// Function to Start Voice Recognition
+function startRecognition(callback) {
+    statusText.textContent = "Listening...";
+    recognition.start();
+    
+    recognition.onresult = (event) => {
+        const spokenWord = event.results[0][0].transcript.toLowerCase().trim();
+        callback(spokenWord);
+    };
+
+    recognition.onerror = (event) => {
+        statusText.textContent = "Error: " + event.error;
+    };
+
+    recognition.onend = () => {
+        statusText.textContent = "";
+    };
+}
+
+// Set Voice Password
+setPasswordBtn.addEventListener("click", () => {
+    startRecognition((spokenWord) => {
+        localStorage.setItem("voicePassword", spokenWord);
+        statusText.textContent = `Voice password set: "${spokenWord}"`;
+    });
+});
+
+// Login with Voice Password
+loginBtn.addEventListener("click", () => {
+    const storedPassword = localStorage.getItem("voicePassword");
+    if (!storedPassword) {
+        statusText.textContent = "No voice password set! Please set a password first.";
+        return;
+    }
+
+    startRecognition((spokenWord) => {
+        if (spokenWord === storedPassword) {
+            statusText.textContent = "Access Granted! ✅";
+            setTimeout(() => {
+                window.location.href = "protected.html"; // Redirect to the secured page
+            }, 1000);
+        } else {
+            statusText.textContent = "Access Denied ❌! Try Again.";
+        }
+    });
+});
+
+    </script>
+</body>
+</html>
